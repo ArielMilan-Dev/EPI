@@ -1,9 +1,22 @@
 <?php
 require_once __DIR__ . '/Model.php';
 
+/**
+ * Modèle pour la gestion des Administrateurs
+ * 
+ * Pourquoi : Séparer la logique d'accès aux données (Base de données) de la 
+ * logique métier (Contrôleurs). Cela permet de réutiliser le code et de 
+ * centraliser les requêtes SQL.
+ */
 class AdminModel extends Model {
     
-    // Authentifier un administrateur
+    /**
+     * Authentifie un administrateur en vérifiant ses identifiants.
+     * 
+     * Comment : Récupère d'abord l'utilisateur par son 'username', puis 
+     * utilise `password_verify()` pour comparer le mot de passe en texte brut 
+     * avec le hachage sécurisé enregistré en base de données.
+     */
     public function authenticate($username, $password) {
         $stmt = $this->db->prepare("SELECT * FROM `admins` WHERE `username` = ?");
         $stmt->execute([$username]);
@@ -15,21 +28,32 @@ class AdminModel extends Model {
         return false;
     }
 
-    // Récupérer un administrateur par son ID
+    /**
+     * Récupère un administrateur par son ID.
+     */
     public function getById($id) {
         $stmt = $this->db->prepare("SELECT * FROM `admins` WHERE `id` = ?");
         $stmt->execute([$id]);
         return $stmt->fetch();
     }
 
-    // Récupérer un administrateur par son nom d'utilisateur
+    /**
+     * Récupère un administrateur par son nom d'utilisateur.
+     * Utile pour vérifier si un 'username' est déjà pris avant une mise à jour.
+     */
     public function getByUsername($username) {
         $stmt = $this->db->prepare("SELECT * FROM `admins` WHERE `username` = ?");
         $stmt->execute([$username]);
         return $stmt->fetch();
     }
 
-    // Mettre à jour les informations de l'administrateur
+    /**
+     * Met à jour les informations du profil administrateur.
+     * 
+     * Comment : Gère dynamiquement la mise à jour du mot de passe. Si le champ 
+     * $password est fourni, il est haché avant l'insertion. Sinon, on met à jour 
+     * uniquement le nom et l'identifiant.
+     */
     public function updateCredentials($id, $username, $name, $password = null) {
         if ($password) {
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);

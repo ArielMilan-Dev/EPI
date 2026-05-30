@@ -2,6 +2,12 @@
 require_once __DIR__ . '/Controller.php';
 require_once __DIR__ . '/../model/StudentModel.php';
 
+/**
+ * Contrôleur gérant l'authentification et l'espace personnel des étudiants
+ * 
+ * Pourquoi : Séparer la gestion des étudiants (côté public/étudiant) de la gestion 
+ * admin. Ce contrôleur gère l'inscription, la connexion et le portail de l'étudiant.
+ */
 class StudentAuthController extends Controller {
 
     private $studentModel;
@@ -11,6 +17,12 @@ class StudentAuthController extends Controller {
     }
 
     // ── Inscription ─────────────────────────────────────────────────────────
+    /**
+     * Gère l'inscription publique d'un étudiant.
+     * 
+     * Comment : Valide les champs, génère un Matricule Étudiant (student_id) unique 
+     * basé sur l'année en cours et un suffixe aléatoire, puis enregistre dans la BDD.
+     */
     public function register() {
         if (isset($_SESSION['student_id'])) {
             $this->redirect('index.php?action=student_portal');
@@ -49,12 +61,12 @@ class StudentAuthController extends Controller {
                 $error = "Un compte existe déjà avec cet email.";
 
             } else {
-                // Génération de l'identifiant unique EPI
+                // Génération de l'identifiant unique EPI (Ex: EPI-2026-1234)
                 $year   = date('Y');
                 $suffix = str_pad(rand(1000, 9999), 4, '0', STR_PAD_LEFT);
                 $studentId = "EPI-{$year}-{$suffix}";
 
-                // S'assurer que l'ID est unique
+                // S'assurer que l'ID est unique en base de données
                 while ($this->studentModel->getByStudentId($studentId)) {
                     $suffix    = str_pad(rand(1000, 9999), 4, '0', STR_PAD_LEFT);
                     $studentId = "EPI-{$year}-{$suffix}";

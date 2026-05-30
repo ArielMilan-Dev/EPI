@@ -1,16 +1,29 @@
 <?php
-// Point d'entrée principal / Front Controller
+/**
+ * Point d'entrée principal de l'application (Front Controller)
+ * 
+ * Pourquoi : En utilisant un point d'entrée unique (index.php), on centralise
+ * la logique de routage. Cela permet d'appliquer des configurations globales
+ * (comme la gestion des sessions ou la connexion à la base de données) à un
+ * seul endroit avant de distribuer la requête au bon contrôleur.
+ * 
+ * Comment : Toutes les requêtes passent par ici, et le paramètre '?action=...' 
+ * définit la page à charger.
+ */
 
 // ── Configuration Production ──
+// Désactive l'affichage direct des erreurs pour éviter de fuiter des informations sensibles.
 error_reporting(0);
 ini_set('display_errors', 0);
 
 // Initialisation de la session
+// Nécessaire pour conserver l'état de connexion de l'utilisateur (étudiant ou admin) entre les pages.
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
 // Chargement automatique des configurations (déclenche la création/seeding automatique si besoin)
+// On s'assure que la base de données est prête avant même de charger les contrôleurs.
 require_once __DIR__ . '/config/database.php';
 try {
     Database::getConnection();
@@ -18,13 +31,13 @@ try {
     die("Échec du démarrage de l'application : " . $e->getMessage());
 }
 
-// Inclusion des contrôleurs
-require_once __DIR__ . '/controller/AuthController.php';
-require_once __DIR__ . '/controller/StudentController.php';
-require_once __DIR__ . '/controller/StudentAuthController.php';
-require_once __DIR__ . '/controller/PublicController.php';
+// Inclusion des contrôleurs (Ils contiennent la logique métier pour chaque section)
+require_once __DIR__ . '/controller/AuthController.php';         // Connexion Admin
+require_once __DIR__ . '/controller/StudentController.php';      // Gestion des étudiants (CRUD Admin)
+require_once __DIR__ . '/controller/StudentAuthController.php';  // Connexion & Portail Étudiant
+require_once __DIR__ . '/controller/PublicController.php';       // Pages vitrines (Accueil, Contact...)
 
-// Routage basé sur le paramètre 'action'
+// Routage basé sur le paramètre 'action' (par défaut on charge 'home')
 $action = $_GET['action'] ?? 'home';
 
 // ─── Pages publiques (accessibles sans authentification) ─────────────────────

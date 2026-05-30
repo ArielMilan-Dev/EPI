@@ -1,5 +1,14 @@
 <?php
-// Classe Database de configuration (Automatique et résiliente)
+/**
+ * Classe Database (Configuration Automatique et Résiliente)
+ * 
+ * Pourquoi : Utiliser le pattern Singleton (une seule instance de connexion) pour 
+ * éviter d'ouvrir de multiples connexions à la base de données, ce qui ralentirait l'application.
+ * 
+ * Comment : La méthode `getConnection()` vérifie si une connexion existe déjà. 
+ * Si non, elle la crée. Elle gère également la création automatique de la base 
+ * et des tables si l'environnement est vierge (Auto-Setup).
+ */
 class Database {
     private static $host = 'localhost';
     private static $user = 'root';
@@ -7,20 +16,23 @@ class Database {
     private static $dbname = 'epi_student_db';
     private static $pdo = null;
 
+    /**
+     * Récupère l'instance PDO de la base de données.
+     */
     public static function getConnection() {
         if (self::$pdo === null) {
             try {
-                // Étape 1 : Connexion initiale au serveur MySQL (sans base pour pouvoir la créer)
+                // Étape 1 : Connexion initiale au serveur MySQL (sans préciser de base, car elle n'existe peut-être pas encore)
                 $dsn = "mysql:host=" . self::$host . ";charset=utf8mb4";
                 $options = [
-                    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                    PDO::ATTR_EMULATE_PREPARES   => false,
+                    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION, // Génère des exceptions en cas d'erreur SQL
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,       // Retourne les résultats sous forme de tableau associatif
+                    PDO::ATTR_EMULATE_PREPARES   => false,                  // Utilise les vraies requêtes préparées (meilleure sécurité)
                 ];
                 
                 $tempPdo = new PDO($dsn, self::$user, self::$pass, $options);
                 
-                // Étape 2 : Création de la base de données si elle n'existe pas
+                // Étape 2 : Création de la base de données si elle n'existe pas (utile pour le déploiement local rapide)
                 $tempPdo->exec("CREATE DATABASE IF NOT EXISTS `" . self::$dbname . "` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
                 $tempPdo = null; // Libère la connexion temporaire
 
@@ -38,8 +50,16 @@ class Database {
         return self::$pdo;
     }
 
+    /**
+     * Crée les tables nécessaires au bon fonctionnement de l'application.
+     * 
+     * Pourquoi : En automatisant la création des tables, l'application peut
+     * être déployée sur n'importe quel serveur sans avoir besoin d'importer
+     * manuellement un fichier `.sql`.
+     */
     private static function setupTables() {
         // Table des Administrateurs
+        // Utilise InnoDB pour bénéficier des relations transactionnelles si besoin à l'avenir.
         self::$pdo->exec("CREATE TABLE IF NOT EXISTS `admins` (
             `id` INT AUTO_INCREMENT PRIMARY KEY,
             `username` VARCHAR(50) NOT NULL UNIQUE,
@@ -49,6 +69,7 @@ class Database {
         ) ENGINE=InnoDB;");
 
         // Table des Étudiants
+        // On rend `email` et `student_id` UNIQUE pour éviter les doublons accidentels.
         self::$pdo->exec("CREATE TABLE IF NOT EXISTS `students` (
             `id` INT AUTO_INCREMENT PRIMARY KEY,
             `student_id` VARCHAR(50) NOT NULL UNIQUE,

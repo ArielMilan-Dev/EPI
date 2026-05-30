@@ -2,6 +2,12 @@
 require_once __DIR__ . '/Controller.php';
 require_once __DIR__ . '/../model/AdminModel.php';
 
+/**
+ * Contrôleur de l'authentification Administrateur
+ * 
+ * Pourquoi : Gérer la sécurité d'accès au tableau de bord (Dashboard).
+ * Il s'occupe de la connexion, la déconnexion et la modification du profil admin.
+ */
 class AuthController extends Controller {
     private $adminModel;
 
@@ -9,7 +15,12 @@ class AuthController extends Controller {
         $this->adminModel = new AdminModel();
     }
 
-    // Afficher le formulaire de connexion ou traiter la connexion
+    /**
+     * Affiche le formulaire de connexion ou traite la soumission.
+     * 
+     * Comment : Si une session existe déjà, redirige automatiquement vers le dashboard.
+     * Sinon, vérifie les identifiants envoyés via POST avec le modèle.
+     */
     public function login() {
         // Si déjà connecté, rediriger vers le tableau de bord
         if (isset($_SESSION['admin_id'])) {

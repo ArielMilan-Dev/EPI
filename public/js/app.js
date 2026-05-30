@@ -1,3 +1,13 @@
+/**
+ * Fichier JavaScript Principal (Espace Admin)
+ * 
+ * Pourquoi : Gérer l'interactivité de la page sans avoir à la recharger (Single Page Application - SPA partielle).
+ * 
+ * Comment :
+ * 1. Utilisation de l'API `fetch` pour faire des appels asynchrones (AJAX) vers `index.php?action=ajax_...`.
+ * 2. Manipulation du DOM en temps réel pour mettre à jour la table des étudiants, les statistiques et les formulaires.
+ * 3. Utilisation de fenêtres modales pour les opérations CRUD (Ajout, Modification) sans quitter le Dashboard.
+ */
 document.addEventListener('DOMContentLoaded', () => {
     // --- INITIALISATION DES VARIABLES ET DOM ---
     const searchInput = document.getElementById('searchInput');

@@ -1,36 +1,59 @@
 <?php
 require_once __DIR__ . '/Model.php';
 
+/**
+ * Modèle pour la gestion des Étudiants
+ * 
+ * Pourquoi : Gérer toutes les opérations liées aux étudiants (CRUD : Create, Read, Update, Delete) 
+ * ainsi que la recherche et l'authentification des étudiants.
+ */
 class StudentModel extends Model {
 
-    // Récupérer tous les étudiants
+    /**
+     * Récupère tous les étudiants.
+     * 
+     * Pourquoi : Utilisé principalement pour générer la liste du tableau de bord ou pour 
+     * l'export Excel.
+     */
     public function getAll() {
         $stmt = $this->db->query("SELECT * FROM `students` ORDER BY `created_at` DESC");
         return $stmt->fetchAll();
     }
 
-    // Récupérer un étudiant par ID unique de base de données
+    /**
+     * Récupérer un étudiant par ID unique de base de données.
+     */
     public function getById($id) {
         $stmt = $this->db->prepare("SELECT * FROM `students` WHERE `id` = ?");
         $stmt->execute([$id]);
         return $stmt->fetch();
     }
 
-    // Récupérer un étudiant par son identifiant étudiant (student_id)
+    /**
+     * Récupérer un étudiant par son identifiant étudiant (student_id).
+     */
     public function getByStudentId($studentId) {
         $stmt = $this->db->prepare("SELECT * FROM `students` WHERE `student_id` = ?");
         $stmt->execute([$studentId]);
         return $stmt->fetch();
     }
 
-    // Récupérer un étudiant par son email
+    /**
+     * Récupérer un étudiant par son email.
+     */
     public function getByEmail($email) {
         $stmt = $this->db->prepare("SELECT * FROM `students` WHERE `email` = ?");
         $stmt->execute([$email]);
         return $stmt->fetch();
     }
 
-    // Recherche avancée et filtrage
+    /**
+     * Recherche avancée et filtrage.
+     * 
+     * Comment : Construit dynamiquement la requête SQL en fonction des paramètres 
+     * fournis. Utilise `LIKE %...%` pour chercher dans plusieurs colonnes (nom, email, tel) 
+     * et `=` pour la classe afin d'avoir un filtrage exact.
+     */
     public function search($query, $className = '') {
         $sql = "SELECT * FROM `students` WHERE 1=1";
         $params = [];
@@ -52,13 +75,17 @@ class StudentModel extends Model {
         return $stmt->fetchAll();
     }
 
-    // Obtenir la liste distincte de toutes les classes
+    /**
+     * Obtenir la liste distincte de toutes les classes.
+     */
     public function getClasses() {
         $stmt = $this->db->query("SELECT DISTINCT `class_name` FROM `students` WHERE `class_name` IS NOT NULL AND `class_name` != '' ORDER BY `class_name` ASC");
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
 
-    // Créer un étudiant
+    /**
+     * Créer un étudiant.
+     */
     public function create($data) {
         $stmt = $this->db->prepare("INSERT INTO `students` (`student_id`, `first_name`, `last_name`, `email`, `phone`, `birth_date`, `class_name`) VALUES (?, ?, ?, ?, ?, ?, ?)");
         return $stmt->execute([
