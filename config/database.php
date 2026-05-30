@@ -58,8 +58,16 @@ class Database {
             `phone` VARCHAR(20) DEFAULT NULL,
             `birth_date` DATE NOT NULL,
             `class_name` VARCHAR(50) NOT NULL,
+            `password` VARCHAR(255) DEFAULT NULL,
             `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB;");
+
+        // Ajouter la colonne password si elle n'existe pas (migration pour DB existante)
+        try {
+            self::$pdo->exec("ALTER TABLE `students` ADD COLUMN IF NOT EXISTS `password` VARCHAR(255) DEFAULT NULL");
+        } catch (PDOException $e) {
+            // Ignorer si déjà existante ou non supporté
+        }
 
         // Étape 5 : Seeding (Données initiales)
         // Vérifier s'il y a des administrateurs, sinon insérer l'admin par défaut

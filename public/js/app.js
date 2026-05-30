@@ -13,10 +13,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Modals
     const addModal = document.getElementById('addModal');
     const editModal = document.getElementById('editModal');
+    const adminProfileModal = document.getElementById('adminProfileModal');
     
     // Forms
     const addForm = document.getElementById('addForm');
     const editForm = document.getElementById('editForm');
+    const adminProfileForm = document.getElementById('adminProfileForm');
 
     // Action buttons that trigger modals
     const openAddModalBtn = document.getElementById('openAddModalBtn');
@@ -24,6 +26,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const cancelAddBtn = document.getElementById('cancelAddBtn');
     const closeEditModalBtn = document.getElementById('closeEditModalBtn');
     const cancelEditBtn = document.getElementById('cancelEditBtn');
+    
+    // Profile modal buttons
+    const openProfileBtn = document.getElementById('openProfileBtn');
+    const closeProfileBtn = document.getElementById('closeProfileBtn');
+    const cancelProfileBtn = document.getElementById('cancelProfileBtn');
 
     // Helper buttons for auto-generating IDs
     const generateAddIdBtn = document.getElementById('generateAddIdBtn');
@@ -41,23 +48,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return false;
     };
 
-    // --- SYSTEME DE THÈME (DARK / LIGHT MODE) ---
-    const themeToggleBtn = document.getElementById('themeToggleBtn');
-    if (themeToggleBtn) {
-        themeToggleBtn.addEventListener('click', () => {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            
-            document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            
-            // Mettre à jour l'icône du bouton
-            const icon = themeToggleBtn.querySelector('i');
-            if (icon) {
-                icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-            }
-        });
-    }
+    // --- SYSTEME DE THÈME SUPPRIMÉ ---
+    // Le design premium EPI est utilisé partout.
 
     // --- SYSTEME DE NOTIFICATIONS (TOASTS) ---
     window.showToast = function(message, type = 'success') {
@@ -154,16 +146,28 @@ document.addEventListener('DOMContentLoaded', () => {
     if (closeEditModalBtn) closeEditModalBtn.addEventListener('click', () => closeModal(editModal));
     if (cancelEditBtn) cancelEditBtn.addEventListener('click', () => closeModal(editModal));
 
-    // Fermeture en cliquant en dehors du modal
-    [addModal, editModal].forEach(modal => {
-        if (modal) {
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    closeModal(modal);
-                }
-            });
-        }
+    if (openProfileBtn) openProfileBtn.addEventListener('click', () => openModal(adminProfileModal));
+    if (closeProfileBtn) closeProfileBtn.addEventListener('click', () => closeModal(adminProfileModal));
+    if (cancelProfileBtn) cancelProfileBtn.addEventListener('click', () => closeModal(adminProfileModal));
+
+    // Fermer les modales au clic en dehors
+    window.addEventListener('click', (e) => {
+        if (e.target === addModal) closeModal(addModal);
+        if (e.target === editModal) closeModal(editModal);
+        if (e.target === adminProfileModal) closeModal(adminProfileModal);
     });
+
+    // Password toggle for profile modal
+    const profilePwToggle = document.getElementById('profilePwToggle');
+    const profilePassword = document.getElementById('profilePassword');
+    const profilePwIcon = document.getElementById('profilePwIcon');
+    if (profilePwToggle && profilePassword && profilePwIcon) {
+        profilePwToggle.addEventListener('click', () => {
+            const isText = profilePassword.type === 'text';
+            profilePassword.type = isText ? 'password' : 'text';
+            profilePwIcon.className = isText ? 'fas fa-eye' : 'fas fa-eye-slash';
+        });
+    }
 
     // --- CHARGEMENT DYNAMIQUE DES ETUDIANTS (AJAX - LIST) ---
     let searchTimeout = null;
@@ -221,14 +225,28 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Calcul de l'âge à partir de la date de naissance
                     const age = calculateAge(student.birth_date);
                     const formattedDate = formatDate(student.created_at);
+                    
+                    // Générer les initiales pour l'avatar
+                    const fInitial = student.first_name ? student.first_name.charAt(0).toUpperCase() : 'E';
+                    const lInitial = student.last_name ? student.last_name.charAt(0).toUpperCase() : 'P';
+                    const initials = fInitial + lInitial;
+
+                    // Liste de couleurs pour varier les avatars (simulé avec l'id)
+                    const colors = ['#1a2b4a', '#f0a500', '#10b981', '#6366f1', '#ef4444'];
+                    const bgColor = colors[student.id % colors.length];
 
                     rowsHtml += `
                         <tr data-id="${student.id}">
                             <td><span class="badge-id">${escapeHtml(student.student_id)}</span></td>
                             <td>
-                                <div class="student-identity">
-                                    <span class="student-name-text">${escapeHtml(student.first_name)} ${escapeHtml(student.last_name)}</span>
-                                    <span class="student-sub">Né(e) le ${escapeHtml(student.birth_date)} (${age} ans)</span>
+                                <div class="student-identity-row" style="display: flex; align-items: center; gap: 12px;">
+                                    <div style="width: 40px; height: 40px; border-radius: 50%; background: ${bgColor}; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px;">
+                                        ${initials}
+                                    </div>
+                                    <div class="student-identity">
+                                        <span class="student-name-text">${escapeHtml(student.first_name)} ${escapeHtml(student.last_name)}</span>
+                                        <span class="student-sub">Né(e) le ${escapeHtml(student.birth_date)} (${age} ans)</span>
+                                    </div>
                                 </div>
                             </td>
                             <td>${escapeHtml(student.email)}</td>
@@ -237,6 +255,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             <td class="student-sub">${formattedDate}</td>
                             <td>
                                 <div class="actions-cell">
+                                    <a href="index.php?action=download_sheet&id=${student.id}" target="_blank" class="btn-icon" title="Télécharger Fiche" style="color: var(--primary);">
+                                        <i class="fas fa-file-pdf"></i>
+                                    </a>
                                     <button class="btn-icon btn-edit" data-id="${student.id}" title="Modifier">
                                         <i class="fas fa-edit"></i>
                                     </button>
@@ -416,6 +437,37 @@ document.addEventListener('DOMContentLoaded', () => {
                     showToast(data.message, "success");
                     closeModal(editModal);
                     loadStudents();
+                } else {
+                    showToast(data.message, "error");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showToast("Erreur lors de la mise à jour.", "error");
+            });
+        });
+    }
+
+    if (adminProfileForm) {
+        adminProfileForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(adminProfileForm);
+            
+            fetch('index.php?action=ajax_update_admin', {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (handleAjaxError(data)) return;
+
+                if (data.success) {
+                    showToast(data.message, "success");
+                    closeModal(adminProfileModal);
+                    // Mettre à jour l'UI avec le nouveau nom (optionnel, ou recharger)
+                    setTimeout(() => window.location.reload(), 1500);
                 } else {
                     showToast(data.message, "error");
                 }

@@ -110,4 +110,36 @@ class StudentModel extends Model {
             'new_enrollments' => $newEnrollments
         ];
     }
+
+    // ── Authentification Étudiant (Espace Étudiant) ─────────────────────────
+
+    // Authentifier un étudiant par email + mot de passe
+    public function authenticateStudent($email, $password) {
+        $stmt = $this->db->prepare("SELECT * FROM `students` WHERE `email` = ?");
+        $stmt->execute([$email]);
+        $student = $stmt->fetch();
+
+        if ($student && !empty($student['password']) && password_verify($password, $student['password'])) {
+            return $student;
+        }
+        return false;
+    }
+
+    // Créer un étudiant avec mot de passe (inscription via portail)
+    public function createWithPassword($data) {
+        $stmt = $this->db->prepare(
+            "INSERT INTO `students` (`student_id`, `first_name`, `last_name`, `email`, `phone`, `birth_date`, `class_name`, `password`)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+        );
+        return $stmt->execute([
+            $data['student_id'],
+            $data['first_name'],
+            $data['last_name'],
+            $data['email'],
+            $data['phone'] ?? null,
+            $data['birth_date'],
+            $data['class_name'],
+            password_hash($data['password'], PASSWORD_DEFAULT),
+        ]);
+    }
 }

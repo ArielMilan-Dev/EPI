@@ -39,6 +39,43 @@ class AuthController extends Controller {
         $this->render('auth/login', ['error' => $error]);
     }
 
+    // Mise à jour du profil administrateur via AJAX
+    public function ajaxUpdateAdmin() {
+        if (!isset($_SESSION['admin_id'])) {
+            $this->json(['success' => false, 'message' => 'Non autorisé.']);
+            return;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id = $_SESSION['admin_id'];
+            $username = trim($_POST['username'] ?? '');
+            $name = trim($_POST['name'] ?? '');
+            $password = $_POST['password'] ?? '';
+
+            if (empty($username) || empty($name)) {
+                $this->json(['success' => false, 'message' => 'Le nom et l\'identifiant sont obligatoires.']);
+                return;
+            }
+
+            // Vérifier que le nouveau username n'est pas déjà pris par un autre admin
+            $existing = $this->adminModel->getByUsername($username);
+            if ($existing && $existing['id'] != $id) {
+                $this->json(['success' => false, 'message' => 'Cet identifiant est déjà utilisé.']);
+                return;
+            }
+
+            if ($this->adminModel->updateCredentials($id, $username, $name, $password ?: null)) {
+                // Mettre à jour la session
+                $_SESSION['admin_name'] = $name;
+                $_SESSION['admin_username'] = $username;
+                
+                $this->json(['success' => true, 'message' => 'Profil mis à jour avec succès.']);
+            } else {
+                $this->json(['success' => false, 'message' => 'Erreur lors de la mise à jour.']);
+            }
+        }
+    }
+
     // Déconnexion
     public function logout() {
         $_SESSION = [];

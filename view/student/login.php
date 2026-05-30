@@ -1,5 +1,5 @@
 <?php
-$pageTitle = $pageTitle ?? "Connexion Administrateur — EPI";
+$pageTitle = $pageTitle ?? "Connexion Étudiant — EPI";
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -7,7 +7,7 @@ $pageTitle = $pageTitle ?? "Connexion Administrateur — EPI";
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($pageTitle) ?></title>
-    <meta name="description" content="Connectez-vous à votre espace administrateur EPI.">
+    <meta name="description" content="Connectez-vous à votre espace étudiant EPI.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -36,10 +36,10 @@ $pageTitle = $pageTitle ?? "Connexion Administrateur — EPI";
             <!-- Logo + titre -->
             <div class="auth-logo">
                 <div class="auth-logo-icon" aria-hidden="true">
-                    <i class="fas fa-user-shield"></i>
+                    <i class="fas fa-graduation-cap"></i>
                 </div>
-                <h1 class="auth-title">Espace Administrateur</h1>
-                <p class="auth-subtitle">Connectez-vous pour gérer l'école</p>
+                <h1 class="auth-title">Espace Étudiant</h1>
+                <p class="auth-subtitle">Connectez-vous à votre compte EPI</p>
             </div>
 
             <!-- Alerte erreur -->
@@ -51,35 +51,36 @@ $pageTitle = $pageTitle ?? "Connexion Administrateur — EPI";
             <?php endif; ?>
 
             <!-- Formulaire -->
-            <form method="POST" action="index.php?action=login" class="auth-form" novalidate id="loginForm">
+            <form method="POST" action="index.php?action=student_login" class="auth-form" novalidate id="loginForm">
 
                 <div class="form-group">
-                    <label for="username">
-                        Nom d'utilisateur <span class="req">*</span>
+                    <label for="login-email">
+                        Adresse email <span class="req">*</span>
                     </label>
                     <div class="input-wrap">
-                        <i class="fas fa-user" aria-hidden="true"></i>
+                        <i class="fas fa-envelope" aria-hidden="true"></i>
                         <input
-                            type="text"
-                            id="username"
-                            name="username"
+                            type="email"
+                            id="login-email"
+                            name="email"
                             class="auth-input"
-                            placeholder="Ex: admin"
-                            autocomplete="username"
+                            placeholder="votre@email.com"
+                            autocomplete="email"
                             required
+                            value="<?= htmlspecialchars($_POST['email'] ?? '') ?>"
                         >
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label for="password">
+                    <label for="login-password">
                         Mot de passe <span class="req">*</span>
                     </label>
                     <div class="input-wrap">
                         <i class="fas fa-lock" aria-hidden="true"></i>
                         <input
                             type="password"
-                            id="password"
+                            id="login-password"
                             name="password"
                             class="auth-input"
                             placeholder="••••••••"
@@ -98,11 +99,16 @@ $pageTitle = $pageTitle ?? "Connexion Administrateur — EPI";
                 </button>
             </form>
 
+            <div class="auth-divider">ou</div>
 
+            <div class="auth-switch">
+                Pas encore de compte ?
+                <a href="index.php?action=student_register">Créer un compte</a>
+            </div>
 
-            <div class="auth-switch" style="margin-top:20px;">
-                Vous êtes étudiant ?
-                <a href="index.php?action=student_login">Espace Étudiant</a>
+            <div class="auth-switch" style="margin-top:10px;">
+                Vous êtes administrateur ?
+                <a href="index.php?action=login">Connexion Admin</a>
             </div>
 
         </div><!-- /auth-card -->
@@ -113,7 +119,7 @@ $pageTitle = $pageTitle ?? "Connexion Administrateur — EPI";
 // Password toggle
 (function () {
     var toggle = document.getElementById('pwToggle');
-    var input  = document.getElementById('password');
+    var input  = document.getElementById('login-password');
     var icon   = document.getElementById('pwIcon');
     if (!toggle) return;
     function doToggle() {

@@ -102,11 +102,12 @@ class StudentController extends Controller {
             'email' => $email,
             'phone' => $phone,
             'birth_date' => $birth_date,
-            'class_name' => $class_name
+            'class_name' => $class_name,
+            'password' => $student_id // Mot de passe par défaut = ID étudiant
         ];
 
-        if ($this->studentModel->create($data)) {
-            $this->json(['success' => true, 'message' => 'Étudiant enregistré avec succès.']);
+        if ($this->studentModel->createWithPassword($data)) {
+            $this->json(['success' => true, 'message' => 'Étudiant enregistré avec succès. (Mot de passe par défaut : '.$student_id.')']);
         } else {
             $this->json(['success' => false, 'message' => "Une erreur s'est produite lors de l'enregistrement."]);
         }
@@ -216,5 +217,23 @@ class StudentController extends Controller {
         } else {
             $this->json(['success' => false, 'message' => "Une erreur s'est produite lors de la suppression."]);
         }
+    }
+
+    // Afficher et imprimer la fiche étudiant
+    public function downloadSheet() {
+        $this->checkAuth();
+
+        $id = intval($_GET['id'] ?? 0);
+        if ($id <= 0) {
+            die('Identifiant invalide.');
+        }
+
+        $student = $this->studentModel->getById($id);
+        if (!$student) {
+            die('Étudiant introuvable.');
+        }
+
+        // On inclut directement la vue pour la fiche étudiant
+        require_once __DIR__ . '/../view/student_sheet.php';
     }
 }

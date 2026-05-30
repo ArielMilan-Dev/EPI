@@ -1,6 +1,10 @@
 <?php
 // Point d'entrée principal / Front Controller
 
+// ── Configuration Production ──
+error_reporting(0);
+ini_set('display_errors', 0);
+
 // Initialisation de la session
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -17,63 +21,79 @@ try {
 // Inclusion des contrôleurs
 require_once __DIR__ . '/controller/AuthController.php';
 require_once __DIR__ . '/controller/StudentController.php';
+require_once __DIR__ . '/controller/StudentAuthController.php';
+require_once __DIR__ . '/controller/PublicController.php';
 
-// Routage simple basé sur le paramètre 'action'
-$action = $_GET['action'] ?? '';
+// Routage basé sur le paramètre 'action'
+$action = $_GET['action'] ?? 'home';
 
-// Si l'utilisateur n'est pas connecté et n'essaie pas de se connecter, on le force vers la page de login
-if (!isset($_SESSION['admin_id']) && $action !== 'login' && $action !== 'logout') {
-    $action = 'login';
+// ─── Pages publiques (accessibles sans authentification) ─────────────────────
+$publicRoutes = ['home', 'formations', 'contact'];
+
+// ─── Pages espace étudiant ────────────────────────────────────────────────────
+$studentRoutes = ['student_login', 'student_register', 'student_portal', 'student_logout'];
+
+// ─── Pages admin ──────────────────────────────────────────────────────────────
+$adminRoutes = ['login', 'logout', 'dashboard', 'ajax_list', 'ajax_add', 'ajax_get', 'ajax_update', 'ajax_delete', 'download_sheet', 'ajax_update_admin'];
+
+// ─── Routage ──────────────────────────────────────────────────────────────────
+
+// Pages publiques
+if (in_array($action, $publicRoutes)) {
+    $publicController = new PublicController();
+    switch ($action) {
+        case 'home':       $publicController->home();       break;
+        case 'formations': $publicController->formations(); break;
+        case 'contact':    $publicController->contact();    break;
+    }
+    exit;
 }
 
-// Si connecté et aucune action ou action login, on redirige vers le tableau de bord
-if (isset($_SESSION['admin_id']) && (empty($action) || $action === 'login')) {
-    $action = 'dashboard';
+// Pages espace étudiant
+if (in_array($action, $studentRoutes)) {
+    $studentAuth = new StudentAuthController();
+    switch ($action) {
+        case 'student_login':    $studentAuth->login();    break;
+        case 'student_register': $studentAuth->register(); break;
+        case 'student_portal':   $studentAuth->portal();   break;
+        case 'student_logout':   $studentAuth->logout();   break;
+    }
+    exit;
 }
 
-switch ($action) {
-    case 'login':
-        $authController = new AuthController();
-        $authController->login();
-        break;
+// Pages admin
+if (in_array($action, $adminRoutes)) {
 
-    case 'logout':
-        $authController = new AuthController();
-        $authController->logout();
-        break;
+    // Si l'utilisateur n'est pas connecté en admin et n'essaie pas de se connecter
+    if (!isset($_SESSION['admin_id']) && $action !== 'login' && $action !== 'logout') {
+        header('Location: index.php?action=login');
+        exit;
+    }
 
-    case 'dashboard':
-        $studentController = new StudentController();
-        $studentController->dashboard();
-        break;
-
-    case 'ajax_list':
-        $studentController = new StudentController();
-        $studentController->ajaxList();
-        break;
-
-    case 'ajax_add':
-        $studentController = new StudentController();
-        $studentController->ajaxAdd();
-        break;
-
-    case 'ajax_get':
-        $studentController = new StudentController();
-        $studentController->ajaxGet();
-        break;
-
-    case 'ajax_update':
-        $studentController = new StudentController();
-        $studentController->ajaxUpdate();
-        break;
-
-    case 'ajax_delete':
-        $studentController = new StudentController();
-        $studentController->ajaxDelete();
-        break;
-
-    default:
-        // Redirection par défaut
+    // Si déjà connecté en admin et tente d'accéder au login → rediriger vers dashboard
+    if (isset($_SESSION['admin_id']) && $action === 'login') {
         header('Location: index.php?action=dashboard');
         exit;
+    }
+
+    $authController    = new AuthController();
+    $studentController = new StudentController();
+
+    switch ($action) {
+        case 'login':           $authController->login();       break;
+        case 'logout':          $authController->logout();      break;
+        case 'dashboard':       $studentController->dashboard(); break;
+        case 'ajax_list':       $studentController->ajaxList();  break;
+        case 'ajax_add':        $studentController->ajaxAdd();   break;
+        case 'ajax_get':        $studentController->ajaxGet();   break;
+        case 'ajax_update':     $studentController->ajaxUpdate(); break;
+        case 'ajax_delete':     $studentController->ajaxDelete(); break;
+        case 'download_sheet':  $studentController->downloadSheet(); break;
+        case 'ajax_update_admin': $authController->ajaxUpdateAdmin(); break;
+    }
+    exit;
 }
+
+// ─── Fallback : page d'accueil ────────────────────────────────────────────────
+header('Location: index.php?action=home');
+exit;

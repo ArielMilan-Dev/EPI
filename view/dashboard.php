@@ -1,42 +1,52 @@
 <?php require_once __DIR__ . '/layout/header.php'; ?>
 
-<div class="dashboard-container">
-    
-    <!-- En-tête du Tableau de Bord -->
-    <header class="dash-header">
-        <div class="dash-brand">
-            <div class="dash-logo">
-                <i class="fas fa-graduation-cap"></i>
-            </div>
-            <div class="dash-brand-info">
-                <h1>EPI Scolarité</h1>
-                <p>Espace d'Administration</p>
-            </div>
+<div class="portal-page">
+
+    <!-- ═══ ADMIN HEADER ═══ -->
+    <header class="portal-hero" role="banner" style="margin-bottom: 0;">
+        <div class="hero-grid" aria-hidden="true"></div>
+        <div class="hero-orbs" aria-hidden="true">
+            <div class="orb orb-1" style="opacity:.5"></div>
+            <div class="orb orb-2" style="opacity:.4"></div>
         </div>
 
-        <div class="dash-user-panel">
-            <!-- Sélecteur de Thème -->
-            <button class="theme-toggle-btn" id="themeToggleBtn" title="Changer de thème" style="position: static;">
-                <i class="fas fa-moon"></i>
-            </button>
-
-            <!-- Badge Utilisateur -->
-            <div class="admin-badge">
-                <div class="admin-avatar">
-                    <?= strtoupper(substr($admin_name ?? 'A', 0, 1)) ?>
-                </div>
-                <span class="admin-name"><?= htmlspecialchars($admin_name ?? 'Admin') ?></span>
+        <div class="container portal-hero-inner">
+            <div>
+                <p class="portal-hello">Espace d'Administration</p>
+                <h1 class="portal-student-name">EPI Scolarité</h1>
             </div>
 
-            <!-- Bouton Déconnexion -->
-            <a href="index.php?action=logout" class="btn btn-secondary btn-sm" style="width: auto;">
-                <i class="fas fa-sign-out-alt"></i> Déconnexion
-            </a>
+            <div class="portal-right">
+                <div class="admin-badge" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white;">
+                    <div class="admin-avatar">
+                        <?= strtoupper(substr($admin_name ?? 'A', 0, 1)) ?>
+                    </div>
+                    <span class="admin-name" style="color: white;"><?= htmlspecialchars($admin_name ?? 'Admin') ?></span>
+                </div>
+                <button type="button" class="portal-logout" id="openProfileBtn" style="background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2);">
+                    <i class="fas fa-cog"></i> Profil
+                </button>
+                <a href="index.php?action=logout" class="portal-logout">
+                    <i class="fas fa-sign-out-alt"></i> Déconnexion
+                </a>
+            </div>
         </div>
     </header>
 
-    <!-- Section Statistiques -->
-    <section class="stats-grid">
+    <!-- ═══ ADMIN BODY ═══ -->
+    <main class="portal-body" style="padding-top: 30px;">
+        <div class="container dashboard-container" style="padding: 0; max-width: 1200px;">
+            
+            <!-- Navigation rapide top -->
+            <div style="margin-bottom:32px;">
+                <a href="index.php?action=home" style="display:inline-flex;align-items:center;gap:8px;color:var(--text-muted);font-size:14px;font-weight:500;transition:var(--transition);"
+                   onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">
+                    <i class="fas fa-arrow-left"></i> Retour au site
+                </a>
+            </div>
+
+            <!-- Section Statistiques -->
+            <section class="stats-grid">
         <div class="stat-card">
             <div class="stat-info">
                 <h3>Total Étudiants</h3>
@@ -69,7 +79,7 @@
     </section>
 
     <!-- Table Section -->
-    <main class="table-section">
+    <section class="table-section">
         <div class="table-controls">
             <div class="search-filter-group">
                 <div class="search-input-wrapper">
@@ -110,8 +120,11 @@
                 </tbody>
             </table>
         </div>
-    </main>
-</div>
+    </section>
+
+        </div> <!-- /container -->
+    </main> <!-- /portal-body -->
+</div> <!-- /portal-page -->
 
 <!-- ================= MODAL AJOUT ETUDIANT ================= -->
 <div class="modal-overlay" id="addModal">
@@ -227,6 +240,44 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" id="cancelEditBtn" style="width: auto;">Annuler</button>
+                <button type="submit" class="btn btn-primary" style="width: auto;">Enregistrer les modifications</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modale Paramètres Profil Admin -->
+<div class="modal-overlay" id="adminProfileModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">Paramètres Profil Administrateur</h2>
+            <button class="modal-close" id="closeProfileBtn"><i class="fas fa-times"></i></button>
+        </div>
+        <form id="adminProfileForm">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Nom complet</label>
+                    <input type="text" name="name" id="adminProfileName" class="form-control" style="padding-left: 14px;" value="<?= htmlspecialchars($admin_name ?? '') ?>" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Identifiant de connexion (Username)</label>
+                    <input type="text" name="username" id="adminProfileUsername" class="form-control" style="padding-left: 14px;" value="<?= htmlspecialchars($_SESSION['admin_username'] ?? '') ?>" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Nouveau mot de passe (Laissez vide pour ne pas changer)</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-lock" aria-hidden="true" style="color:var(--text-muted);left:14px;top:50%;transform:translateY(-50%);position:absolute;"></i>
+                        <input type="password" id="profilePassword" name="password" class="form-control" style="padding-left: 42px;" placeholder="••••••••">
+                        <span class="pw-toggle" id="profilePwToggle" role="button" tabindex="0" style="position:absolute; right:14px; top:50%; transform:translateY(-50%); cursor:pointer; color:var(--text-muted);">
+                            <i class="fas fa-eye" id="profilePwIcon" style="position:relative;left:auto;top:auto;transform:none;color:inherit;pointer-events:none;"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelProfileBtn" style="width: auto;">Annuler</button>
                 <button type="submit" class="btn btn-primary" style="width: auto;">Enregistrer les modifications</button>
             </div>
         </form>
