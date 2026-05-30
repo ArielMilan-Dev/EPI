@@ -48,6 +48,9 @@ $birthDate = !empty($student['birth_date'])
                 <div class="portal-avatar" aria-label="Avatar de <?= $fullName ?>">
                     <?= $initials ?>
                 </div>
+                <button type="button" class="portal-logout" id="openStudentPwdBtn" style="background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); margin-right: 10px;">
+                    <i class="fas fa-key" aria-hidden="true"></i> Mot de passe
+                </button>
                 <a href="index.php?action=student_logout" class="portal-logout" id="portalLogoutBtn">
                     <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
                     Déconnexion
@@ -163,6 +166,59 @@ $birthDate = !empty($student['birth_date'])
 
 </div>
 
+<!-- Modale Mot de Passe Étudiant -->
+<div class="modal-overlay" id="studentPwdModal">
+    <div class="modal-content" style="max-width: 450px;">
+        <div class="modal-header">
+            <h2 class="modal-title">Modifier mon mot de passe</h2>
+            <button class="modal-close" id="closeStudentPwdBtn"><i class="fas fa-times"></i></button>
+        </div>
+        <form id="studentPwdForm">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Ancien mot de passe</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-lock" aria-hidden="true" style="color:var(--text-muted);left:14px;top:50%;transform:translateY(-50%);position:absolute;"></i>
+                        <input type="password" name="old_password" id="oldPwdInput" class="form-control" style="padding-left: 42px;" required>
+                        <span class="pw-toggle" id="toggleOldPwd" role="button" tabindex="0">
+                            <i class="fas fa-eye" id="iconOldPwd"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Nouveau mot de passe</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-lock" aria-hidden="true" style="color:var(--text-muted);left:14px;top:50%;transform:translateY(-50%);position:absolute;"></i>
+                        <input type="password" name="new_password" id="newPwdInput" class="form-control" style="padding-left: 42px;" required minlength="6">
+                        <span class="pw-toggle" id="toggleNewPwd" role="button" tabindex="0">
+                            <i class="fas fa-eye" id="iconNewPwd"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Confirmer le nouveau mot de passe</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-lock" aria-hidden="true" style="color:var(--text-muted);left:14px;top:50%;transform:translateY(-50%);position:absolute;"></i>
+                        <input type="password" name="confirm_password" id="confirmPwdInput" class="form-control" style="padding-left: 42px;" required>
+                        <span class="pw-toggle" id="toggleConfirmPwd" role="button" tabindex="0">
+                            <i class="fas fa-eye" id="iconConfirmPwd"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelStudentPwdBtn" style="width: auto;">Annuler</button>
+                <button type="submit" class="btn btn-primary" style="width: auto;">Mettre à jour</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Conteneur des toasts (notifications) -->
+<div class="toast-container" id="toastContainer"></div>
+
 <!-- Scroll-reveal -->
 <script>
 (function () {
@@ -174,6 +230,104 @@ $birthDate = !empty($student['birth_date'])
         });
     }, { threshold: 0.1 });
     elems.forEach(function (el) { obs.observe(el); });
+})();
+
+// Toasts function
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    const iconClass = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
+    toast.innerHTML = `
+        <div class="toast-content">
+            <i class="${iconClass} toast-icon"></i>
+            <span class="toast-text">${message}</span>
+        </div>
+    `;
+    container.appendChild(toast);
+    setTimeout(() => toast.classList.add('show'), 10);
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+// Modal & Form Logic
+(function () {
+    const modal = document.getElementById('studentPwdModal');
+    const openBtn = document.getElementById('openStudentPwdBtn');
+    const closeBtn = document.getElementById('closeStudentPwdBtn');
+    const cancelBtn = document.getElementById('cancelStudentPwdBtn');
+    const form = document.getElementById('studentPwdForm');
+
+    function openModal() {
+        if(modal) {
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+    function closeModal() {
+        if(modal) {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+            if(form) form.reset();
+        }
+    }
+
+    if (openBtn) openBtn.addEventListener('click', openModal);
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+    window.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+
+    // Password Toggles
+    function setupToggle(toggleId, inputId, iconId) {
+        const toggle = document.getElementById(toggleId);
+        const input = document.getElementById(inputId);
+        const icon = document.getElementById(iconId);
+        if(!toggle || !input || !icon) return;
+        const doToggle = () => {
+            const isText = input.type === 'text';
+            input.type = isText ? 'password' : 'text';
+            icon.className = isText ? 'fas fa-eye' : 'fas fa-eye-slash';
+        };
+        toggle.addEventListener('click', doToggle);
+        toggle.addEventListener('keydown', (e) => {
+            if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); doToggle(); }
+        });
+    }
+
+    setupToggle('toggleOldPwd', 'oldPwdInput', 'iconOldPwd');
+    setupToggle('toggleNewPwd', 'newPwdInput', 'iconNewPwd');
+    setupToggle('toggleConfirmPwd', 'confirmPwdInput', 'iconConfirmPwd');
+
+    // Form Submission
+    if (form) {
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(form);
+            fetch('index.php?action=ajax_update_student_pwd', {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, "success");
+                    closeModal();
+                } else {
+                    showToast(data.message, "error");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showToast("Erreur lors de la mise à jour.", "error");
+            });
+        });
+    }
 })();
 </script>
 

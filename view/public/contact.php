@@ -43,8 +43,8 @@ require_once __DIR__ . '/../layout/public_header.php';
                     <div>
                         <div class="contact-item-lbl">Adresse</div>
                         <div class="contact-item-val">
-                            Avenue de l'Université, Campus EPI<br>
-                            Tunis 1000 — Tunisie
+                            Quartier Millionaire, Campus EPI<br>
+                            Yamoussoukro — Côte d'Ivoire
                         </div>
                     </div>
                 </div>
@@ -80,7 +80,7 @@ require_once __DIR__ . '/../layout/public_header.php';
                     <div>
                         <div class="contact-item-lbl">Horaires</div>
                         <div class="contact-item-val">
-                            Lundi – Vendredi : 8h00 – 17h00<br>
+                            Lundi – Samedi : 8h00 – 18h00<br>
                             Samedi : 9h00 – 12h30
                         </div>
                     </div>

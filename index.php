@@ -31,7 +31,7 @@ $action = $_GET['action'] ?? 'home';
 $publicRoutes = ['home', 'formations', 'contact'];
 
 // ─── Pages espace étudiant ────────────────────────────────────────────────────
-$studentRoutes = ['student_login', 'student_register', 'student_portal', 'student_logout'];
+$studentRoutes = ['student_login', 'student_register', 'student_portal', 'student_logout', 'ajax_update_student_pwd'];
 
 // ─── Pages admin ──────────────────────────────────────────────────────────────
 $adminRoutes = ['login', 'logout', 'dashboard', 'ajax_list', 'ajax_add', 'ajax_get', 'ajax_update', 'ajax_delete', 'download_sheet', 'ajax_update_admin'];
@@ -57,6 +57,7 @@ if (in_array($action, $studentRoutes)) {
         case 'student_register': $studentAuth->register(); break;
         case 'student_portal':   $studentAuth->portal();   break;
         case 'student_logout':   $studentAuth->logout();   break;
+        case 'ajax_update_student_pwd': $studentAuth->ajaxUpdatePassword(); break;
     }
     exit;
 }

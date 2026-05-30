@@ -133,6 +133,48 @@ class StudentAuthController extends Controller {
         ]);
     }
 
+    // ── Mise à jour du mot de passe (AJAX) ────────────────────────────────────
+    public function ajaxUpdatePassword() {
+        if (!isset($_SESSION['student_id'])) {
+            $this->json(['success' => false, 'message' => 'Non autorisé.']);
+            return;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id = $_SESSION['student_id'];
+            $oldPassword = $_POST['old_password'] ?? '';
+            $newPassword = $_POST['new_password'] ?? '';
+            $confirmPassword = $_POST['confirm_password'] ?? '';
+
+            if (empty($oldPassword) || empty($newPassword) || empty($confirmPassword)) {
+                $this->json(['success' => false, 'message' => 'Tous les champs sont obligatoires.']);
+                return;
+            }
+
+            if ($newPassword !== $confirmPassword) {
+                $this->json(['success' => false, 'message' => 'Les nouveaux mots de passe ne correspondent pas.']);
+                return;
+            }
+
+            if (strlen($newPassword) < 6) {
+                $this->json(['success' => false, 'message' => 'Le nouveau mot de passe doit contenir au moins 6 caractères.']);
+                return;
+            }
+
+            $student = $this->studentModel->getById($id);
+            if (!$student || !password_verify($oldPassword, $student['password'])) {
+                $this->json(['success' => false, 'message' => 'Ancien mot de passe incorrect.']);
+                return;
+            }
+
+            if ($this->studentModel->updatePassword($id, $newPassword)) {
+                $this->json(['success' => true, 'message' => 'Mot de passe mis à jour avec succès.']);
+            } else {
+                $this->json(['success' => false, 'message' => 'Erreur lors de la mise à jour.']);
+            }
+        }
+    }
+
     // ── Déconnexion ───────────────────────────────────────────────────────────
     public function logout() {
         unset(
